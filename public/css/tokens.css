@@ -1,0 +1,165 @@
+/* ==========================================================================
+   Design tokens
+   Dark-first. One accent (electric blue), one execution colour (green),
+   decision colours (blue / amber), restrained warning and error colours.
+   ========================================================================== */
+
+:root {
+  /* Colour — dark theme (default) */
+  --bg: #080b11;
+  --bg-elevated: #0c1119;
+  --surface-1: #10161f;
+  --surface-2: #141c27;
+  --surface-3: #1a2331;
+  --surface-hover: #1f2a3a;
+  --border: #1f2937;
+  --border-strong: #2b3a4f;
+  --border-focus: #3b82f6;
+
+  --text: #e7eefb;
+  --text-secondary: #a7b6cc;
+  --text-muted: #7386a0;
+  --text-faint: #56657d;
+
+  --accent: #3b82f6;
+  --accent-bright: #60a5fa;
+  --accent-dim: #1d4ed8;
+  --accent-soft: rgba(59, 130, 246, 0.14);
+  --accent-softer: rgba(59, 130, 246, 0.08);
+
+  --green: #34d399;
+  --green-dim: #0f766e;
+  --green-soft: rgba(52, 211, 153, 0.14);
+
+  --amber: #f5b544;
+  --amber-soft: rgba(245, 181, 68, 0.14);
+  --orange: #f97316;
+  --orange-soft: rgba(249, 115, 22, 0.13);
+
+  --red: #f2555a;
+  --red-soft: rgba(242, 85, 90, 0.13);
+
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.14);
+
+  --cyan: #22d3ee;
+  --cyan-soft: rgba(34, 211, 238, 0.13);
+
+  /* Syntax colours */
+  --syn-keyword: #c792ea;
+  --syn-type: #7dd3fc;
+  --syn-string: #a5e6a0;
+  --syn-number: #f7b96a;
+  --syn-comment: #5d7085;
+  --syn-preproc: #f2a0a0;
+  --syn-function: #93c5fd;
+  --syn-operator: #9fb3cc;
+  --syn-punct: #7d8ea6;
+  --syn-constant: #f0c987;
+
+  /* Spatial scale */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.5);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Roboto Mono', monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+
+  --topbar-height: 54px;
+  --toolbar-height: 46px;
+  --statusbar-height: 28px;
+  --editor-line-height: 21px;
+  --editor-font-size: 13px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 380ms;
+
+  color-scheme: dark;
+}
+
+/* Light theme: same structure, calmer surfaces. */
+[data-theme='light'] {
+  --bg: #f3f5f9;
+  --bg-elevated: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #eef2f8;
+  --surface-hover: #e6ecf5;
+  --border: #dbe2ec;
+  --border-strong: #c3cfe0;
+  --border-focus: #2563eb;
+
+  --text: #101825;
+  --text-secondary: #43536a;
+  --text-muted: #64748b;
+  --text-faint: #8494ab;
+
+  --accent: #2563eb;
+  --accent-bright: #1d4ed8;
+  --accent-dim: #1e40af;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --accent-softer: rgba(37, 99, 235, 0.06);
+
+  --green: #047857;
+  --green-soft: rgba(4, 120, 87, 0.1);
+
+  --amber: #a16207;
+  --amber-soft: rgba(161, 98, 7, 0.1);
+  --orange: #c2410c;
+  --orange-soft: rgba(194, 65, 12, 0.1);
+
+  --red: #b91c1c;
+  --red-soft: rgba(185, 28, 28, 0.09);
+
+  --purple: #6d28d9;
+  --purple-soft: rgba(109, 40, 217, 0.1);
+
+  --cyan: #0e7490;
+  --cyan-soft: rgba(14, 116, 144, 0.1);
+
+  --syn-keyword: #7c3aed;
+  --syn-type: #0369a1;
+  --syn-string: #15803d;
+  --syn-number: #b45309;
+  --syn-comment: #7c8ba1;
+  --syn-preproc: #b91c1c;
+  --syn-function: #1d4ed8;
+  --syn-operator: #475569;
+  --syn-punct: #64748b;
+  --syn-constant: #a16207;
+
+  --shadow-1: 0 1px 2px rgba(16, 24, 37, 0.08);
+  --shadow-2: 0 4px 16px rgba(16, 24, 37, 0.1);
+  --shadow-3: 0 18px 48px rgba(16, 24, 37, 0.16);
+
+  color-scheme: light;
+}

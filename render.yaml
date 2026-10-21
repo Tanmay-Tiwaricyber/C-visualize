@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: c-visualizer
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CVIS_USE_NAMESPACES
+        value: "false"
+      - key: CVIS_USE_PRLIMIT
+        value: "true"
+      - key: CVIS_MAX_CONCURRENT_JOBS
+        value: "1"
+      - key: CVIS_MEMORY_MB
+        value: "384"

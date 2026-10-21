@@ -1,0 +1,17 @@
+{
+  "name": "c-visualizer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive C programming laboratory with real compiler-driven execution tracing.",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/backend/compiler.test.js tests/backend/sandbox.test.js tests/backend/trace-service.test.js tests/backend/validation.test.js tests/integration/api.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

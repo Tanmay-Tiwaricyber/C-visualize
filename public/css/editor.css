@@ -1,0 +1,351 @@
+/* ==========================================================================
+   Code editor: gutter, current-line highlight, breakpoints, syntax colours
+   ========================================================================== */
+
+.editor-shell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  background: var(--surface-1);
+}
+
+.editor-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+  contain: strict;
+}
+
+.editor-inner {
+  display: flex;
+  min-width: 100%;
+  width: max-content;
+  align-items: stretch;
+}
+
+.gutter {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: none;
+  padding: var(--space-4) 0 var(--space-10);
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
+  color: var(--text-faint);
+  user-select: none;
+  text-align: right;
+  min-width: 58px;
+}
+
+.gutter-line {
+  position: relative;
+  height: var(--editor-line-height);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.gutter-line .ln {
+  position: relative;
+  z-index: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.gutter-line .bp-hit {
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+}
+
+.gutter-line:hover .bp-hit {
+  color: var(--border-strong);
+}
+
+.gutter-line .bp-hit::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.gutter-line[data-breakpoint='true'] .bp-hit {
+  color: var(--red);
+}
+
+.gutter-line[data-active='true'] {
+  color: var(--accent-bright);
+  background: var(--accent-soft);
+}
+
+.gutter-line[data-active='true']::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+.gutter-line[data-error='true'] {
+  color: var(--red);
+}
+
+.gutter-line[data-warning='true'] {
+  color: var(--amber);
+}
+
+.code-area {
+  position: relative;
+  flex: none;
+  min-width: 0;
+  padding: var(--space-4) 0 var(--space-10);
+}
+
+.current-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--editor-line-height);
+  background: rgba(59, 130, 246, 0.11);
+  border-left: 2px solid var(--accent);
+  pointer-events: none;
+  transition: transform 90ms linear;
+  z-index: 0;
+}
+
+.breakpoint-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bp-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--editor-line-height);
+  background: rgba(242, 85, 90, 0.07);
+}
+
+.highlight,
+#code-input {
+  margin: 0;
+  padding: 0 var(--space-5) 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
+  tab-size: 4;
+  white-space: pre;
+  letter-spacing: 0;
+  border: 0;
+  background: transparent;
+}
+
+.highlight {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--text);
+  min-height: 100%;
+}
+
+.highlight code {
+  display: block;
+}
+
+#code-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  resize: none;
+  overflow: hidden;
+  color: transparent;
+  caret-color: var(--accent-bright);
+  outline: none;
+  -webkit-text-fill-color: transparent;
+}
+
+#code-input::selection {
+  background: rgba(59, 130, 246, 0.28);
+  -webkit-text-fill-color: transparent;
+}
+
+#code-input:focus {
+  outline: none;
+}
+
+.code-area[data-readonly='true'] #code-input {
+  caret-color: transparent;
+}
+
+/* Syntax tokens */
+.tok-comment {
+  color: var(--syn-comment);
+  font-style: italic;
+}
+
+.tok-keyword {
+  color: var(--syn-keyword);
+}
+
+.tok-type {
+  color: var(--syn-type);
+}
+
+.tok-string {
+  color: var(--syn-string);
+}
+
+.tok-char {
+  color: var(--syn-string);
+}
+
+.tok-number {
+  color: var(--syn-number);
+}
+
+.tok-preproc {
+  color: var(--syn-preproc);
+}
+
+.tok-function {
+  color: var(--syn-function);
+}
+
+.tok-constant {
+  color: var(--syn-constant);
+}
+
+.tok-operator {
+  color: var(--syn-operator);
+}
+
+.tok-punct {
+  color: var(--syn-punct);
+}
+
+/* Find bar */
+.find-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  flex: none;
+}
+
+.find-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--text-faint);
+  margin-left: var(--space-2);
+}
+
+#find-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 24px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+#find-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.find-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Editor footer */
+.editor-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 24px;
+  padding: 0 var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 10.5px;
+  color: var(--text-faint);
+  flex: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.editor-footer .dot-sep {
+  opacity: 0.5;
+}
+
+.editor-footer .hint {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.editor-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  text-align: center;
+  pointer-events: none;
+  background: var(--surface-1);
+}
+
+.editor-empty .empty-title {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+}
+
+.editor-empty .empty-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Compiler markers shown inline on the offending line */
+.inline-diagnostic {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px dashed var(--red);
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.inline-diagnostic[data-severity='warning'] {
+  border-bottom-color: var(--amber);
+}

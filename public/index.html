@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>C Visualizer — See Every Step. Understand Every Line.</title>
+    <meta
+      name="description"
+      content="An interactive C programming laboratory: compile with a real C toolchain, trace execution with GDB, and watch control flow, variables, the call stack and memory update step by step."
+    />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/editor.css" />
+    <link rel="stylesheet" href="css/flowchart.css" />
+    <link rel="stylesheet" href="css/memory.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#code-input">Skip to code editor</a>
+
+    <div class="app">
+      <!-- ================= Top navigation ================= -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" data-icon="logo" aria-hidden="true"></span>
+          <span class="brand-text">
+            <strong>C Visualizer</strong>
+            <small>See every step. Understand every line.</small>
+          </span>
+        </div>
+
+        <nav class="topbar-actions" aria-label="Application">
+          <button class="btn btn-ghost" data-action="new">
+            <span data-icon="file-plus"></span><span class="label">New</span>
+          </button>
+
+          <div class="menu-anchor">
+            <button class="btn btn-ghost" data-menu-toggle="examples" aria-expanded="false" aria-haspopup="true">
+              <span data-icon="folder"></span><span class="label">Examples</span><span data-icon="chevron-down" class="chev"></span>
+            </button>
+            <div class="menu menu-wide" id="examples-menu" role="menu" hidden></div>
+          </div>
+
+          <button class="btn btn-ghost" data-action="save">
+            <span data-icon="download"></span><span class="label">Save</span>
+          </button>
+
+          <button class="btn btn-ghost btn-icon" data-action="theme" title="Toggle theme" aria-label="Toggle theme">
+            <span data-icon="moon"></span>
+          </button>
+
+          <button class="btn btn-ghost" data-action="docs">
+            <span data-icon="book"></span><span class="label">Docs</span>
+          </button>
+
+          <span class="topbar-divider" aria-hidden="true"></span>
+
+          <button class="btn btn-primary" id="run-btn" data-action="run">
+            <span data-icon="play"></span><span class="label">Run</span>
+          </button>
+          <button class="btn btn-danger-ghost" id="stop-btn" data-action="stop" disabled>
+            <span data-icon="stop"></span><span class="label">Stop</span>
+          </button>
+
+          <div class="status-chip" id="exec-status" data-state="idle">
+            <span class="status-dot"></span>
+            <span class="status-text">Idle</span>
+          </div>
+        </nav>
+      </header>
+
+      <!-- ================= Execution toolbar ================= -->
+      <div class="toolbar" role="toolbar" aria-label="Execution controls">
+        <div class="toolbar-group">
+          <button class="btn btn-sm btn-icon" data-action="restart" title="Restart trace from the first recorded step" aria-label="Restart" disabled>
+            <span data-icon="restart"></span>
+          </button>
+          <button class="btn btn-sm" data-action="play" title="Play the recorded trace automatically" aria-label="Play trace" disabled>
+            <span data-icon="play"></span><span class="label">Play</span>
+          </button>
+          <button class="btn btn-sm btn-icon" data-action="pause" title="Pause playback" aria-label="Pause" disabled>
+            <span data-icon="pause"></span>
+          </button>
+        </div>
+
+        <div class="toolbar-group toolbar-steps">
+          <button class="btn btn-sm btn-icon" data-action="first" title="Go to the first recorded step" aria-label="First step" disabled>
+            <span data-icon="skip-back"></span>
+          </button>
+          <button class="btn btn-sm btn-icon" data-action="prev" title="Previous recorded step ([)" aria-label="Previous step" disabled>
+            <span data-icon="chevron-left"></span>
+          </button>
+          <button class="btn btn-sm btn-icon" data-action="next" title="Next recorded step (])" aria-label="Next step" disabled>
+            <span data-icon="chevron-right"></span>
+          </button>
+          <button class="btn btn-sm btn-icon" data-action="last" title="Go to the last recorded step" aria-label="Last step" disabled>
+            <span data-icon="skip-forward"></span>
+          </button>
+        </div>
+
+        <div class="toolbar-group toolbar-debug">
+          <button class="btn btn-sm" data-action="step-into" title="Step into the next recorded event, including function entry" disabled>
+            <span data-icon="step-into"></span><span class="label">Into</span>
+          </button>
+          <button class="btn btn-sm" data-action="step-over" title="Advance past the next event without entering deeper frames" disabled>
+            <span data-icon="step-over"></span><span class="label">Over</span>
+          </button>
+          <button class="btn btn-sm" data-action="step-out" title="Advance until the current function returns" disabled>
+            <span data-icon="step-out"></span><span class="label">Out</span>
+          </button>
+          <button class="btn btn-sm btn-icon" data-action="to-breakpoint" title="Jump to the next event on a breakpoint line" aria-label="Run to breakpoint" disabled>
+            <span data-icon="target"></span>
+          </button>
+          <span class="replay-badge" title="These controls replay an execution trace recorded in one traced run. They are not a live reverse debugger.">
+            <span data-icon="info"></span> Trace replay
+          </span>
+        </div>
+
+        <div class="toolbar-group toolbar-progress">
+          <div class="step-readout">
+            <span class="step-readout-value" id="step-current">–</span>
+            <span class="step-readout-sep">/</span>
+            <span class="step-readout-total" id="step-total">–</span>
+            <span class="step-readout-label">steps</span>
+          </div>
+          <input
+            type="range"
+            id="timeline-range"
+            class="timeline-range"
+            min="0"
+            max="0"
+            value="0"
+            step="1"
+            aria-label="Execution timeline position"
+            disabled
+          />
+        </div>
+
+        <div class="toolbar-group toolbar-speed">
+          <label class="speed-label" for="speed-select"><span data-icon="gauge"></span> Speed</label>
+          <select id="speed-select" class="select select-sm" aria-label="Playback speed">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+          </select>
+          <label class="switch" title="Rebuild with AddressSanitizer and UBSan (slower, detects memory errors)">
+            <input type="checkbox" id="sanitize-toggle" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+            <span class="switch-label">Sanitizers</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ================= Main workspace ================= -->
+      <main class="workspace" id="workspace">
+        <!-- ---------- Editor pane ---------- -->
+        <section class="pane pane-editor" id="editor-pane" aria-label="Code editor">
+          <div class="pane-header">
+            <div class="file-tab" data-state="active">
+              <span data-icon="code" class="file-icon"></span>
+              <span class="file-name">prog.c</span>
+              <span class="dirty-dot" id="dirty-dot" hidden title="Unsaved changes">●</span>
+            </div>
+            <div class="pane-actions">
+              <select id="example-select" class="select select-sm" aria-label="Load an example program">
+                <option value="">Load example…</option>
+              </select>
+              <button class="btn btn-icon btn-ghost btn-sm" data-action="find" title="Find (Ctrl+F)" aria-label="Find">
+                <span data-icon="search"></span>
+              </button>
+              <button class="btn btn-icon btn-ghost btn-sm" data-action="copy" title="Copy code" aria-label="Copy code">
+                <span data-icon="copy"></span>
+              </button>
+              <button class="btn btn-icon btn-ghost btn-sm" data-action="download" title="Download prog.c" aria-label="Download code">
+                <span data-icon="download"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="find-bar" id="find-bar" hidden>
+            <span data-icon="search" class="find-icon"></span>
+            <input type="text" id="find-input" placeholder="Find in code…" aria-label="Find in code" />
+            <span class="find-count" id="find-count">0/0</span>
+            <button class="btn btn-icon btn-ghost btn-sm" data-action="find-prev" title="Previous match" aria-label="Previous match">
+              <span data-icon="chevron-up"></span>
+            </button>
+            <button class="btn btn-icon btn-ghost btn-sm" data-action="find-next" title="Next match" aria-label="Next match">
+              <span data-icon="chevron-down"></span>
+            </button>
+            <button class="btn btn-icon btn-ghost btn-sm" data-action="find-close" title="Close find" aria-label="Close find">
+              <span data-icon="close"></span>
+            </button>
+          </div>
+
+          <div class="editor-shell" id="editor-shell">
+            <div class="editor-scroll" id="editor-scroll">
+              <div class="editor-inner" id="editor-inner">
+                <div class="gutter" id="gutter" aria-hidden="true"></div>
+                <div class="code-area" id="code-area">
+                  <div class="current-line" id="current-line" hidden></div>
+                  <div class="breakpoint-marks" id="breakpoint-marks"></div>
+                  <pre class="highlight" aria-hidden="true"><code id="highlight"></code></pre>
+                  <textarea
+                    id="code-input"
+                    spellcheck="false"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    autocorrect="off"
+                    aria-label="C source code editor"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="editor-empty" id="editor-empty" hidden>
+              <p class="empty-title">Write or load a C program</p>
+              <p class="empty-sub">Then press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to compile and trace it.</p>
+            </div>
+          </div>
+
+          <div class="editor-footer">
+            <span id="cursor-pos">Ln 1, Col 1</span>
+            <span class="dot-sep">·</span>
+            <span>C11 · gcc</span>
+            <span class="dot-sep">·</span>
+            <span id="breakpoint-info">No breakpoints</span>
+            <span class="grow"></span>
+            <span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Run · <kbd>Ctrl</kbd>+<kbd>S</kbd> Save · <kbd>[</kbd>/<kbd>]</kbd> Step</span>
+          </div>
+        </section>
+
+        <div class="divider divider-vertical" id="editor-divider" role="separator" aria-orientation="vertical" tabindex="0" aria-label="Resize editor and visualisation panes"></div>
+
+        <!-- ---------- Visualisation pane ---------- -->
+        <section class="pane pane-viz" id="viz-pane" aria-label="Visualisation workspace">
+          <div class="viz-header">
+            <div class="tabs" role="tablist" aria-label="Visualisation panels" id="viz-tabs">
+              <button class="tab" role="tab" data-panel="flow" aria-selected="true"><span data-icon="flow"></span>Flowchart</button>
+              <button class="tab" role="tab" data-panel="variables" aria-selected="false"><span data-icon="variables"></span>Variables</button>
+              <button class="tab" role="tab" data-panel="memory" aria-selected="false"><span data-icon="memory"></span>Memory</button>
+              <button class="tab" role="tab" data-panel="stack" aria-selected="false"><span data-icon="stack"></span>Call stack</button>
+              <button class="tab" role="tab" data-panel="arrays" aria-selected="false"><span data-icon="pointer"></span>Arrays &amp; pointers</button>
+              <button class="tab" role="tab" data-panel="history" aria-selected="false"><span data-icon="history"></span>History</button>
+            </div>
+            <div class="viz-actions">
+              <label class="split-label" for="split-select"><span data-icon="split"></span> Split</label>
+              <select id="split-select" class="select select-sm" aria-label="Secondary panel">
+                <option value="">None</option>
+                <option value="variables">Variables</option>
+                <option value="memory">Memory</option>
+                <option value="stack">Call stack</option>
+                <option value="arrays">Arrays &amp; pointers</option>
+                <option value="history">History</option>
+                <option value="flow">Flowchart</option>
+              </select>
+              <button class="btn btn-icon btn-ghost btn-sm" data-action="toggle-console" title="Show or hide the console" aria-label="Toggle console">
+                <span data-icon="terminal"></span>
+              </button>
+              <button class="btn btn-icon btn-ghost btn-sm" data-action="learn" title="Learn mode" aria-label="Learn mode">
+                <span data-icon="graduation"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="viz-body" id="viz-body">
+            <div class="panel-stage" id="panel-primary" data-panel="flow"></div>
+            <div class="divider divider-horizontal" id="split-divider" role="separator" aria-orientation="horizontal" tabindex="0" hidden></div>
+            <div class="panel-stage" id="panel-secondary" hidden></div>
+          </div>
+
+          <!-- ---------- Console ---------- -->
+          <div class="console" id="console">
+            <div class="console-header">
+              <div class="tabs tabs-sm" role="tablist" aria-label="Console tabs" id="console-tabs">
+                <button class="tab" role="tab" data-console="output" aria-selected="true">
+                  <span data-icon="terminal"></span>Output<span class="tab-badge" id="badge-output" hidden></span>
+                </button>
+                <button class="tab" role="tab" data-console="input" aria-selected="false">
+                  <span data-icon="keyboard"></span>Input
+                </button>
+                <button class="tab" role="tab" data-console="compiler" aria-selected="false">
+                  <span data-icon="alert-circle"></span>Compiler<span class="tab-badge" id="badge-compiler" hidden></span>
+                </button>
+                <button class="tab" role="tab" data-console="runtime" aria-selected="false">
+                  <span data-icon="bug"></span>Runtime<span class="tab-badge" id="badge-runtime" hidden></span>
+                </button>
+                <button class="tab" role="tab" data-console="logs" aria-selected="false">
+                  <span data-icon="list"></span>Logs
+                </button>
+              </div>
+              <div class="console-actions">
+                <button class="btn btn-icon btn-ghost btn-sm" data-action="clear-output" title="Clear captured output view" aria-label="Clear output view">
+                  <span data-icon="eraser"></span>
+                </button>
+                <button class="btn btn-icon btn-ghost btn-sm" data-action="console-collapse" title="Collapse console" aria-label="Collapse console">
+                  <span data-icon="chevron-down"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="console-body" id="console-body">
+              <div class="console-pane" data-console-pane="output" role="tabpanel">
+                <div class="console-empty" id="output-empty">
+                  <span data-icon="terminal"></span>
+                  <p>Program output appears here, synchronised with the execution cursor.</p>
+                </div>
+                <pre class="program-output" id="program-output"></pre>
+              </div>
+
+              <div class="console-pane" data-console-pane="input" role="tabpanel" hidden>
+                <div class="stdin-panel">
+                  <label for="stdin-input" class="stdin-label">
+                    Standard input
+                    <span class="muted">— supplied to the program before it starts (scanf, fgets, getchar)</span>
+                  </label>
+                  <textarea id="stdin-input" class="stdin-input" spellcheck="false" placeholder="One value per line, e.g.&#10;5&#10;10 20 30"></textarea>
+                  <p class="stdin-note">
+                    <span data-icon="info"></span>
+                    Live keystroke feeding is not enabled: this build records the whole run in one traced pass, so stdin is
+                    fixed when the program starts. If the program needs more input than you provide, the read returns EOF —
+                    the debugger trace still shows exactly where that happened.
+                  </p>
+                </div>
+              </div>
+
+              <div class="console-pane" data-console-pane="compiler" role="tabpanel" hidden>
+                <div class="diagnostics" id="diagnostics-list"></div>
+              </div>
+
+              <div class="console-pane" data-console-pane="runtime" role="tabpanel" hidden>
+                <div class="diagnostics" id="runtime-list"></div>
+              </div>
+
+              <div class="console-pane" data-console-pane="logs" role="tabpanel" hidden>
+                <ul class="log-list" id="log-list"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ================= Status bar ================= -->
+      <footer class="statusbar">
+        <span class="status-item" id="status-mode"><span data-icon="activity"></span> <span id="status-mode-text">Ready</span></span>
+        <span class="status-item" id="status-backend"><span class="health-dot" data-state="unknown"></span> <span id="status-backend-text">Checking backend…</span></span>
+        <span class="grow"></span>
+        <span class="status-item" id="status-frame">No frame</span>
+        <span class="status-item" id="status-steps">0 steps</span>
+        <span class="status-item" id="status-time">—</span>
+      </footer>
+    </div>
+
+    <!-- ================= Overlays ================= -->
+    <div class="modal-root" id="modal-root" hidden></div>
+    <div class="drawer-root" id="drawer-root" hidden></div>
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
